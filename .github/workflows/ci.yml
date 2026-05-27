@@ -20,7 +20,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready -U notes
+          --health-cmd "pg_isready -U notes"
           --health-interval 5s
           --health-timeout 3s
           --health-retries 5
@@ -33,6 +33,9 @@ jobs:
           go-version: '1.26'
           cache: true
 
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client
+
       - name: Run migrations
         run: psql -h localhost -U notes -d notes -f migrations/001_create_notes_table.sql
         env:
@@ -42,7 +45,7 @@ jobs:
         run: go test ./internal/service/ -v
 
       - name: Integration tests
-        run: go test ./internal/handlers/ -v ./internal/repository/ -v
+        run: go test -v ./internal/handlers/ ./internal/repository/
         env:
           DATABASE_URL: postgres://notes:notes@localhost:5432/notes?sslmode=disable
 
