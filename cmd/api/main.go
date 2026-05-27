@@ -51,6 +51,9 @@ func main() {
 
 	r.Get("/health", handlers.HealthHandler())
 
+	fileServer := http.FileServer(http.Dir("./web"))
+	r.Handle("/*", fileServer)
+
 	r.Route("/api/notes", func(r chi.Router) {
 		r.Get("/", noteHandler.GetAll)
 		r.Post("/", noteHandler.Create)
