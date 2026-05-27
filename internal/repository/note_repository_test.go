@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/luken/notes-devops-playground/internal/repository"
@@ -15,7 +16,9 @@ func TestNoteRepository_CRUD(t *testing.T) {
 		t.Skip("DATABASE_URL not set")
 	}
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	pool, err := pgxpool.New(ctx, dbURL)
 	if err != nil {
 		t.Fatal(err)
@@ -23,6 +26,10 @@ func TestNoteRepository_CRUD(t *testing.T) {
 	defer pool.Close()
 
 	repo := repository.NewNoteRepository(pool)
+
+	t.Cleanup(func() {
+		_, _ = pool.Exec(context.Background(), "TRUNCATE notes")
+	})
 
 	t.Run("create and get by id", func(t *testing.T) {
 		note, err := repo.Create(ctx, "Test Title", "Test Content")
@@ -49,12 +56,15 @@ func TestNoteRepository_CRUD(t *testing.T) {
 	})
 
 	t.Run("get all returns created notes", func(t *testing.T) {
+		repo.Create(ctx, "List Item", "Content A")
+		repo.Create(ctx, "List Item 2", "Content B")
+
 		notes, err := repo.GetAll(ctx)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if len(notes) == 0 {
-			t.Error("expected at least one note")
+		if len(notes) < 2 {
+			t.Errorf("expected at least 2 notes, got %d", len(notes))
 		}
 	})
 
@@ -70,6 +80,9 @@ func TestNoteRepository_CRUD(t *testing.T) {
 		}
 		if updated.Title != "Updated" {
 			t.Errorf("expected 'Updated', got %q", updated.Title)
+		}
+		if !updated.UpdatedAt.After(note.UpdatedAt) {
+			t.Error("expected updated_at to be bumped")
 		}
 	})
 
