@@ -47,7 +47,8 @@ func setupTestRouter(t *testing.T) *chi.Mux {
 }
 
 func TestHealthEndpoint(t *testing.T) {
-	router := setupTestRouter(t)
+    router := chi.NewRouter()
+    router.Get("/health", handlers.HealthHandler())
 	req := httptest.NewRequest("GET", "/health", nil)
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, req)

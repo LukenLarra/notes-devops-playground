@@ -1,13 +1,15 @@
 package handlers
 
 import (
-	"encoding/json"
-	"errors"
-	"net/http"
+    "encoding/json"
+    "errors"
+    "net/http"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/luken/notes-devops-playground/internal/service"
+    "github.com/go-chi/chi/v5"
+    "github.com/luken/notes-devops-playground/internal/service"
 )
+
+const maxBodySize = 1 << 20 // 1 MB
 
 type noteHandler struct {
 	svc service.NoteService
@@ -18,11 +20,13 @@ func NewNoteHandler(svc service.NoteService) *noteHandler {
 }
 
 func (h *noteHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Title   string `json:"title"`
-		Content string `json:"content"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+    r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
+
+    var req struct {
+        Title   string `json:"title"`
+        Content string `json:"content"`
+    }
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, CodeInvalidJSON, "Invalid request body")
 		return
 	}
@@ -70,13 +74,15 @@ func (h *noteHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *noteHandler) Update(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+    id := chi.URLParam(r, "id")
 
-	var req struct {
-		Title   string `json:"title"`
-		Content string `json:"content"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+    r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
+
+    var req struct {
+        Title   string `json:"title"`
+        Content string `json:"content"`
+    }
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, CodeInvalidJSON, "Invalid request body")
 		return
 	}
