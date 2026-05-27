@@ -34,9 +34,10 @@ func setupTestRouter(t *testing.T) *chi.Mux {
 	repo := repository.NewNoteRepository(pool)
 	svc := service.NewNoteService(repo, &service.DefaultValidator{})
 	h := handlers.NewNoteHandler(svc)
+	healthHandler := handlers.NewHealthHandler(pool)
 
 	r := chi.NewRouter()
-	r.Get("/health", handlers.HealthHandler())
+	r.Get("/health", healthHandler.Check)
 	r.Get("/api/notes", h.GetAll)
 	r.Post("/api/notes", h.Create)
 	r.Get("/api/notes/{id}", h.GetByID)
@@ -47,8 +48,21 @@ func setupTestRouter(t *testing.T) *chi.Mux {
 }
 
 func TestHealthEndpoint(t *testing.T) {
-    router := chi.NewRouter()
-    router.Get("/health", handlers.HealthHandler())
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		t.Skip("DATABASE_URL not set")
+	}
+
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, dbURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer pool.Close()
+
+	router := chi.NewRouter()
+	router.Get("/health", handlers.NewHealthHandler(pool).Check)
+
 	req := httptest.NewRequest("GET", "/health", nil)
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, req)

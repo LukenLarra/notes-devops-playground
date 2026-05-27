@@ -41,6 +41,7 @@ func main() {
 	repo := repository.NewNoteRepository(pool)
 	svc := service.NewNoteService(repo, &service.DefaultValidator{})
 	noteHandler := handlers.NewNoteHandler(svc)
+	healthHandler := handlers.NewHealthHandler(pool)
 
 	r := chi.NewRouter()
 
@@ -51,7 +52,7 @@ func main() {
 	r.Use(appMiddleware.Metrics)
 	r.Use(chiMiddleware.Timeout(30 * time.Second))
 
-	r.Get("/health", handlers.HealthHandler())
+	r.Get("/health", healthHandler.Check)
 	r.Handle("/metrics", promhttp.Handler())
 
 	fileServer := http.FileServer(http.Dir("./web"))
