@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/luken/notes-devops-playground/internal/model"
+	"github.com/luken/notes-devops-playground/internal/repository"
 	"github.com/luken/notes-devops-playground/internal/service"
 )
 
@@ -31,7 +32,7 @@ func (m *mockRepo) GetByID(ctx context.Context, id string) (model.Note, error) {
 			return n, nil
 		}
 	}
-	return model.Note{}, service.ErrNotFound
+	return model.Note{}, repository.ErrNoteNotFound
 }
 
 func (m *mockRepo) GetAll(ctx context.Context) ([]model.Note, error) {
@@ -52,7 +53,7 @@ func (m *mockRepo) Update(ctx context.Context, id, title, content string) (model
 			return m.notes[i], nil
 		}
 	}
-	return model.Note{}, service.ErrNotFound
+	return model.Note{}, repository.ErrNoteNotFound
 }
 
 func (m *mockRepo) Delete(ctx context.Context, id string) error {
@@ -65,7 +66,7 @@ func (m *mockRepo) Delete(ctx context.Context, id string) error {
 			return nil
 		}
 	}
-	return service.ErrNotFound
+	return repository.ErrNoteNotFound
 }
 
 type mockValidator struct{}
