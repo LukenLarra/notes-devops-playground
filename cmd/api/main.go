@@ -18,6 +18,7 @@ import (
 	appMiddleware "github.com/luken/notes-devops-playground/internal/middleware"
 	"github.com/luken/notes-devops-playground/internal/repository"
 	"github.com/luken/notes-devops-playground/internal/service"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -47,9 +48,11 @@ func main() {
 	r.Use(chiMiddleware.RealIP)
 	r.Use(appMiddleware.Recovery(log))
 	r.Use(appMiddleware.Logging(log))
+	r.Use(appMiddleware.Metrics)
 	r.Use(chiMiddleware.Timeout(30 * time.Second))
 
 	r.Get("/health", handlers.HealthHandler())
+	r.Handle("/metrics", promhttp.Handler())
 
 	fileServer := http.FileServer(http.Dir("./web"))
 	r.Handle("/*", fileServer)
