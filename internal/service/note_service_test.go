@@ -2,6 +2,7 @@ package service_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/luken/notes-devops-playground/internal/model"
@@ -90,6 +91,9 @@ func TestNoteService_Create(t *testing.T) {
 	if note.Title != "Title" {
 		t.Errorf("expected 'Title', got %q", note.Title)
 	}
+	if len(repo.notes) != 1 {
+		t.Errorf("expected repo to have 1 note, got %d", len(repo.notes))
+	}
 }
 
 func TestNoteService_Create_EmptyTitle(t *testing.T) {
@@ -107,5 +111,72 @@ func TestNoteService_GetByID_NotFound(t *testing.T) {
 	_, err := svc.GetByID(context.Background(), "nonexistent")
 	if err != service.ErrNotFound {
 		t.Errorf("expected ErrNotFound, got %v", err)
+	}
+}
+
+func TestNoteService_Delete(t *testing.T) {
+	repo := &mockRepo{}
+	svc := service.NewNoteService(repo, &mockValidator{})
+
+	note, err := svc.Create(context.Background(), "Delete Me", "Content")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = svc.Delete(context.Background(), note.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = svc.GetByID(context.Background(), note.ID)
+	if err != service.ErrNotFound {
+		t.Errorf("expected ErrNotFound, got %v", err)
+	}
+}
+
+func TestNoteService_Update(t *testing.T) {
+	repo := &mockRepo{}
+	svc := service.NewNoteService(repo, &mockValidator{})
+
+	note, err := svc.Create(context.Background(), "Original", "Original content")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	updated, err := svc.Update(context.Background(), note.ID, "Updated", "Updated content")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if updated.Title != "Updated" {
+		t.Errorf("expected 'Updated', got %q", updated.Title)
+	}
+}
+
+func TestNoteService_GetAll(t *testing.T) {
+	repo := &mockRepo{}
+	svc := service.NewNoteService(repo, &mockValidator{})
+
+	svc.Create(context.Background(), "Note 1", "Content 1")
+	svc.Create(context.Background(), "Note 2", "Content 2")
+
+	notes, err := svc.GetAll(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(notes) != 2 {
+		t.Errorf("expected 2 notes, got %d", len(notes))
+	}
+}
+
+func TestNoteService_RepoError(t *testing.T) {
+	repo := &mockRepo{err: errors.New("db connection failed")}
+	svc := service.NewNoteService(repo, &mockValidator{})
+
+	_, err := svc.Create(context.Background(), "Title", "Content")
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if err.Error() != "db connection failed" {
+		t.Errorf("expected 'db connection failed', got %v", err)
 	}
 }
