@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Notes</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="app-bar">
-    <span class="material-icons" style="font-size:28px">note</span>
+    <span class="material-icons">note</span>
     <span class="app-bar-title">Notes</span>
   </header>
 
@@ -19,7 +20,7 @@
 
     <div class="card">
       <div class="card-header">
-        <span class="material-icons" style="color:#1565c0;font-size:20px">edit_note</span>
+        <span class="material-icons">edit_note</span>
         <h2 class="card-title" id="form-title">New Note</h2>
       </div>
       <form id="note-form">
@@ -34,7 +35,7 @@
         <div class="form-actions">
           <button type="button" class="btn text-btn hidden" id="cancel-btn">Cancel</button>
           <button type="submit" class="btn filled-btn" id="submit-btn">
-            <span class="material-icons" style="font-size:18px">add</span>
+            <span class="material-icons">add</span>
             Create
           </button>
         </div>
@@ -43,7 +44,7 @@
 
     <div class="card">
       <div class="card-header">
-        <span class="material-icons" style="color:#1565c0;font-size:20px">format_list_bulleted</span>
+        <span class="material-icons">format_list_bulleted</span>
         <h2 class="card-title">All Notes</h2>
       </div>
       <div id="notes-list">
